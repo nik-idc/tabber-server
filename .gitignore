@@ -131,3 +131,4 @@ dist
 
 # config
 src/db/env.js
+src/db/seq/config/config.json
