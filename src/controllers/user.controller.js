@@ -1,5 +1,3 @@
-const db = require('../db/db');
-
 class UserController {
 
 	async redirectToLogin(req, res) {
