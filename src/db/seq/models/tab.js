@@ -7,9 +7,18 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.STRING,
 			allowNull: false
 		},
-		data: {
+		guitar: {
 			type: DataTypes.JSON,
 			allowNull: false
+		},
+		bars: {
+			type: DataTypes.JSON,
+			allowNull: false
+		},
+		public: {
+			type: DataTypes.BOOLEAN,
+            allowNull: false,
+			defaultValue: false
 		}
 	}, {
 		timestamps: false

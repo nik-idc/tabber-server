@@ -3,6 +3,6 @@ const router = express.Router();
 const rootController = require('../controllers/root.controller');
 const jwtAuth = require('../middleware/jwtAuth');
 
-router.get('/', jwtAuth, rootController.getRoot);
+router.get('/', jwtAuth.auth, rootController.getRoot);
 
 module.exports = router;
