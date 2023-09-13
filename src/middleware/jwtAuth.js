@@ -1,6 +1,6 @@
 const { StatusCodes } = require('http-status-codes');
 const jwt = require('jsonwebtoken');
-const env = require('../db/env');
+const env = require('../config/env');
 
 class JwtAuth {
 	auth(req, res, next) {

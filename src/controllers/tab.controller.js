@@ -1,7 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const env = require('../db/env');
+const env = require('../config/env');
 const { credentials } = require('../db/seq/models');
 const { user } = require('../db/seq/models');
 const { tab } = require('../db/seq/models');

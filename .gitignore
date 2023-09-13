@@ -130,5 +130,4 @@ dist
 .pnp.*
 
 # config
-src/db/env.js
-src/db/seq/config/config.json
+src/config/env.js
