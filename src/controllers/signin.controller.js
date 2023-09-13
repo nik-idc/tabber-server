@@ -3,9 +3,9 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const jwtAuth = require('../middleware/jwtAuth');
 const env = require('../config/env');
-const { credentials } = require('../db/seq/models');
-const { user } = require('../db/seq/models');
-const { tab } = require('../db/seq/models');
+const { credentials } = require('../db/models');
+const { user } = require('../db/models');
+const { tab } = require('../db/models');
 
 class LoginController {
 	async signIn(req, res) {
