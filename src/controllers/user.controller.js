@@ -8,7 +8,7 @@ const { tab } = require('../db/seq/models');
 
 class UserController {
 	async getUser(req, res) {
-		let { id } = req.clientPayload;
+		const { id } = req.clientPayload;
 
 		try {
 			console.log(`Attempting to get data of user ${id}`);
@@ -55,12 +55,12 @@ class UserController {
 			});
 
 			// Update instance name and save
-			userData.username = sentUserData.username;
+			userData.username = sentUserData.userData.username;
 			await userData.save();
 
 			// Send OK response and token in the cookie
 			console.log('Update successful');
-			res.status(StatusCodes.OK).send();
+			res.status(StatusCodes.OK).json(userData);
 		} catch (err) {
 			// Send unknown error response
 			console.log(`Unknown error during updating user: ${err}`);

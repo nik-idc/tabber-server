@@ -3,7 +3,7 @@ const app = express();
 const db = require('./src/db/seq/models');
 
 // Setup routes
-require("./src/router/routes")(app);
+require("./src/router/router")(app);
 
 // Create associations
 require('./src/db/seq/associations/associations')();
@@ -14,6 +14,6 @@ db.sequelize.sync({ alter: true }).then(() => {
   let server = app.listen(PORT, () => {
     let host = server.address().address;
     let port = server.address().port;
-    console.log(`server started at port ${PORT}`);
+    console.log(`server started on host "${host}", port "${port}"`);
   });
 })
