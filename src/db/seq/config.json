@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "nik_pg15",
+    "database": "tabber_db",
+    "host": "localhost",
+    "dialect": "postgresql"
+  },
+  "test": {
+    "username": "postgres",
+    "password": "nik_pg15",
+    "database": "tabber_db",
+    "host": "localhost",
+    "dialect": "postgresql"
+  },
+  "production": {
+    "username": "postgres",
+    "password": "nik_pg15",
+    "database": "tabber_db",
+    "host": "localhost",
+    "dialect": "postgresql"
+  }
+}

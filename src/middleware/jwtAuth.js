@@ -16,7 +16,7 @@ class JwtAuth {
 		}
 	
 		// Verify the token
-		let payload = jwt.verify(token, env.secret);
+		let payload = jwt.verify(token, env.jwt.secret);
 		if (!payload) {
 			return res.status(StatusCodes.UNAUTHORIZED).send('Unauthorized request');
 		}
@@ -29,7 +29,7 @@ class JwtAuth {
 
 	sign(userBody) {
 		let tokenPayload = { id: userBody.id, username: userBody.username };
-		const token = jwt.sign(tokenPayload, env.secret);
+		const token = jwt.sign(tokenPayload, env.jwt.secret);
 		return token;
 	}
 }

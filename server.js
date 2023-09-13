@@ -6,7 +6,7 @@ const db = require('./src/db/seq/models');
 require("./src/router/router")(app);
 
 // Create associations
-require('./src/db/seq/associations/associations')();
+require('./src/db/seq/associations')();
 
 // Create a Server
 const PORT = process.env.PORT || 3000

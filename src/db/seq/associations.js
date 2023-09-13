@@ -1,6 +1,6 @@
-const { credentials } = require('../models');
-const { user } = require('../models');
-const { tab } = require('../models');
+const { credentials } = require('./models');
+const { user } = require('./models');
+const { tab } = require('./models');
 
 module.exports = function () {
 	credentials.hasOne(user, {
