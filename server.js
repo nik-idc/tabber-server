@@ -17,3 +17,4 @@ db.sequelize.sync({ alter: true }).then(() => {
     console.log(`server started on host "${host}", port "${port}"`);
   });
 })
+ 
