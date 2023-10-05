@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const db = require('./src/db/models');
+const env = require('./src/config/env');
 
 // Setup routes
 require("./src/router/router")(app);
@@ -9,7 +10,7 @@ require("./src/router/router")(app);
 require('./src/db/associations')();
 
 // Create a Server
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || env.app.port || 3000;
 db.sequelize.sync({ alter: true }).then(() => {
   let server = app.listen(PORT, () => {
     let host = server.address().address;
