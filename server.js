@@ -10,12 +10,12 @@ require("./src/router/router")(app);
 require('./src/db/associations')();
 
 // Create a Server
-const PORT = process.env.PORT || env.app.port || 3000;
+const port = process.env.PORT || env.app.port || 3000;
 db.sequelize.sync({ alter: true }).then(() => {
-  let server = app.listen(PORT, () => {
-    let host = server.address().address;
-    let port = server.address().port;
-    console.log(`server started on host "${host}", port "${port}"`);
+  let server = app.listen(port, () => {
+    let srvHost = server.address().address;
+    let srvPort = server.address().port;
+    console.log(`server started on host "${srvHost}", port "${srvPort}"`);
   });
 })
  
