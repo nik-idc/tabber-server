@@ -9,80 +9,61 @@ const { tab } = require('../db/models');
 class UserController {
 	async getUser(req, res) {
 		const { id } = req.clientPayload;
-
 		try {
-			console.log(`Attempting to get data of user ${id}`);
-
-			// Find user based on credentials
-			console.log('Finding user based on id');
+			console.log(`Attempting to get data of user '${id}'`);
 			let userData = await user.findOne({
 				where: {
 					id: id,
-				},
-				include: [tab]
+				}
 			});
 
-			// Build user object
+			console.log('Update successful');
 			let userBody = {
 				id: userData.id,
 				username: userData.username,
-				tabs: userData.tabs,
 			};
-
-			// Send OK response and token in the cookie
-			console.log('Update successful');
 			res.status(StatusCodes.OK).json(userBody);
 		} catch (err) {
-			// Send unknown error response
-			console.log(`Unknown error during updating user: ${err}`);
-			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: `Unknown error during updating user: ${err}` });
+			const errStr = `Unknown error during updating user: ${err}`;
+			console.log(errStr);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errStr);
 		}
 	}
 
 	async updateUser(req, res) {
 		let { id } = req.clientPayload;
-		let sentUserData = req.body;
+		let { username } = req.body;
 
 		try {
-			console.log(`Attempting to update data of user ${id}`);
-
-			// Find user based on credentials
-			console.log('Finding user based on id');
+			console.log(`Attempting to update data of user '${id}'`);
 			let userData = await user.findOne({
 				where: {
 					id: id,
 				}
 			});
 
-			// Update instance name and save
-			userData.username = sentUserData.userData.username;
+			userData.username = username;
 			await userData.save();
 
-			// Send OK response and token in the cookie
 			console.log('Update successful');
 			res.status(StatusCodes.OK).json(userData);
 		} catch (err) {
-			// Send unknown error response
-			console.log(`Unknown error during updating user: ${err}`);
-			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: `Unknown error during updating user: ${err}` });
+			const errStr = `Unknown error during updating user: ${err}`;
+			console.log(errStr);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errStr);
 		}
 	}
 
 	async deleteUser(req, res) {
 		let { id } = req.clientPayload;
-
 		try {
 			console.log(`Attempting to delete user ${id}`);
-
-			// Find user based on credentials
-			console.log('Finding user based on id');
 			let userData = await user.findOne({
 				where: {
 					id: id,
 				}
 			});
 
-			// Find credentials
 			console.log('Finding credentials');
 			let userCred = await credentials.findOne({
 				where: {
@@ -90,10 +71,8 @@ class UserController {
 				}
 			});
 
-			// Update instance name and save
 			await userCred.destroy();
 
-			// Send OK response and token in the cookie
 			console.log('Delete successful');
 			res.status(StatusCodes.OK).send();
 		} catch (err) {

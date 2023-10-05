@@ -11,13 +11,4 @@ module.exports = function () {
 		}
 	});
 	user.belongsTo(credentials);
-
-	user.hasMany(tab, {
-		onDelete: 'CASCADE',
-		onUpdate: 'CASCADE',
-		foreignKey: {
-			allowNull: false
-		}
-	});
-	tab.belongsTo(user);
 };

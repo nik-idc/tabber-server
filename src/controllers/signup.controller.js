@@ -8,53 +8,39 @@ const { user } = require('../db/models');
 const { tab } = require('../db/models');
 
 class SignupController {
-	async createUser(req, res) {
-		// Log to the console
-		console.log('Attempting signing up');
-
-		// Get user data from request body
+	async signup(req, res) {
 		let { email, password, username } = req.body;
-
+		
 		try {
-			// Hash the password using the salt
-			console.log('Hashing password');
+			console.log('Attempting signing up');
+			console.log('Hashing password...');
 			let hashedPassword = crypto
                 .pbkdf2Sync(password, env.hash.secret, env.hash.iterations, env.hash.keyLength, env.hash.algorithm)
                 .toString(env.hash.encoding);
 
-			// Create credentials
-			console.log('Creating credentials and user');
-			let cred = await credentials.create({
+			console.log('Creating credentials and user...');
+			let userCred = await credentials.create({
 				email: email,
 				password: hashedPassword,
 				user: {
 					username: username
 				}
 			}, {
-				include: [user]
+				include: user
 			});
-
-			// Build user object
+			
+			console.log('User created, signing jwt...')
 			let userBody = {
-				id: cred.user.id,
-				username: cred.user.username,
-				tabs: []
+				id: userCred.user.id,
+				username: userCred.user.username,
 			};
-			
-			// Create jwt containing user data
-			console.log('User found, signing jwt');
-			let jwttoken = jwtAuth.sign(userBody);
-
-			// Build response body
-			let responseBody = { data: userBody, token: jwttoken };
-			
-			// Send OK as response
+			let token = jwtAuth.sign(userBody);
 			console.log(`Succesfully created a new user with email '${email}'`);
-			res.status(StatusCodes.OK).json(responseBody);
+			res.status(StatusCodes.OK).json({ data: userBody, token: token });
 		} catch (err) {
-			// Send error as response
-			console.log(`Unknown error during signing up: ${err}`);
-			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: `Unknown error during signing up: ${err}` });
+			const errStr = `Unknown error during signing up: ${err}`;
+			console.log(errStr);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errStr);
 		}
 	}
 }

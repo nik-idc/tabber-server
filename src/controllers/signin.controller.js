@@ -7,60 +7,38 @@ const { credentials } = require('../db/models');
 const { user } = require('../db/models');
 const { tab } = require('../db/models');
 
-class LoginController {
+class SigninController {
 	async signIn(req, res) {
-		// Get user data from request body
-		let { email, password } = req.body;
-
+		const { email, password } = req.body;
 		try {
-			// Log attempting to login
-			console.log(`Attempting to login with email ${email}`);
-
-			// Find user with specified email and password in the database
+			console.log(`Attempting to login with email '${email}'`);
 			let hashedPassword = crypto
                 .pbkdf2Sync(password, env.hash.secret, env.hash.iterations, env.hash.keyLength, env.hash.algorithm)
                 .toString(env.hash.encoding);
-
-			// Find user based on credentials
-			console.log('Finding user based on credentials');
 			let userCred = await credentials.findOne({
 				where: {
 					email: email,
 					password: hashedPassword
 				},
-				include: [{
-					model: user,
-					include: [tab]
-				}]
+				include: {
+					model: user
+				}
 			});
 
-			// Build user object
+			console.log('User found, signing jwt');
 			let userBody = {
 				id: userCred.user.id,
 				username: userCred.user.username,
-				tabs: userCred.user.tabs,
 			};
-
-			// Create and sign jwt containing user data
-			console.log('User found, signing jwt');
-			let jwttoken = jwtAuth.sign(userBody);
-
-			// Build response body
-			let responseBody = { data: userBody, token: jwttoken };
-
-			// Send OK response and token in the cookie
-			console.log('Login successful');
-			res.status(StatusCodes.OK).json(responseBody);
+			let token = jwtAuth.sign(userBody);
+			console.log(`Succesfully signed in user '${email}'`);
+			res.status(StatusCodes.OK).json({ data: userBody, token: token });
 		} catch (err) {
-			// Send unknown error response
-			console.log(`Unknown error during signing in: ${err}`);
-			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: `Unknown error during signing in: ${err}` });
+			const errStr = `Unknown error during signing in: ${err}`
+			console.log(errStr);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errStr);
 		}
-	}
-
-	async signOut(req, res) {
-
 	}
 }
 
-module.exports = new LoginController();
+module.exports = new SigninController();

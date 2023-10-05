@@ -1,0 +1,17 @@
+meta {
+  name: signin
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{server}}/api/signin
+  body: json
+}
+
+body:json {
+  {
+    "email": "mem@mem.mem",
+    "password": "_memMEM20_"
+  }
+}

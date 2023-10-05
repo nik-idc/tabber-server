@@ -1,0 +1,22 @@
+meta {
+  name: updateUser
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{server}}/api/user
+  body: json
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJtZW0iLCJpYXQiOjE2OTY0OTU3Nzd9.egslf9ALbUM9i6LMd28raAlw1PSr_Kq-tZAdU0lAANs
+}
+
+body:json {
+  {
+    "email": "mem@mem.mem",
+    "password": "_memMEM20_",
+    "username": "mem2"
+  }
+}
