@@ -6,12 +6,15 @@ const env = require('../config/env');
 const { credentials } = require('../db/models');
 const { user } = require('../db/models');
 const { tab } = require('../db/models');
+const { emitRedisEvent } = require("../config/redis.config");
 
 class SignupController {
+	/** @type {import("express").RequestHandler} */ // Allows intellisense for expressjs code
 	async signup(req, res) {
 		let { email, password, username } = req.body;
 		
 		try {
+			// Create user
 			console.log('Attempting signing up');
 			console.log('Hashing password...');
 			let hashedPassword = crypto
@@ -29,6 +32,7 @@ class SignupController {
 				include: user
 			});
 			
+			// Sign jwt
 			console.log('User created, signing jwt...')
 			let userBody = {
 				id: userCred.user.id,
@@ -36,6 +40,14 @@ class SignupController {
 			};
 			let token = jwtAuth.sign(userBody);
 			console.log(`Succesfully created a new user with email '${email}'`);
+			// Emit redis event
+			const eventMessage = {
+				id: userCred.user.id,
+				email: userCred.email,
+				username: userCred.user.username
+			}
+			await emitRedisEvent('signup', eventMessage);
+			// Send response
 			res.status(StatusCodes.OK).json({ data: userBody, token: token });
 		} catch (err) {
 			const errStr = `Unknown error during signing up: ${err}`;

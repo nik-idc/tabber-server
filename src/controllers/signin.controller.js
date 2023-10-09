@@ -6,8 +6,10 @@ const env = require('../config/env');
 const { credentials } = require('../db/models');
 const { user } = require('../db/models');
 const { tab } = require('../db/models');
+const { emitRedisEvent } = require("../config/redis.config");
 
 class SigninController {
+	/** @type {import("express").RequestHandler} */ // Allows intellisense for expressjs code
 	async signIn(req, res) {
 		const { email, password } = req.body;
 		try {
@@ -25,6 +27,7 @@ class SigninController {
 				}
 			});
 
+			// Sign jwt
 			console.log('User found, signing jwt');
 			let userBody = {
 				id: userCred.user.id,
@@ -32,6 +35,14 @@ class SigninController {
 			};
 			let token = jwtAuth.sign(userBody);
 			console.log(`Succesfully signed in user '${email}'`);
+			// Emit redis event
+			const eventMessage = {
+				id: userCred.user.id,
+				email: userCred.email,
+				username: userCred.user.username,
+			}
+			await emitRedisEvent('signin', eventMessage);
+			// Send response
 			res.status(StatusCodes.OK).json({ data: userBody, token: token });
 		} catch (err) {
 			const errStr = `Unknown error during signing in: ${err}`

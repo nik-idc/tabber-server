@@ -5,8 +5,10 @@ const env = require('../config/env');
 const { credentials } = require('../db/models');
 const { user } = require('../db/models');
 const { tab } = require('../db/models');
+const { emitRedisEvent } = require("../config/redis.config");
 
 class UserController {
+	/** @type {import("express").RequestHandler} */ // Allows intellisense for expressjs code
 	async getUser(req, res) {
 		const { id } = req.clientPayload;
 		try {
@@ -17,19 +19,24 @@ class UserController {
 				}
 			});
 
-			console.log('Update successful');
+			console.log('Found user');
 			let userBody = {
 				id: userData.id,
 				username: userData.username,
 			};
+			// Emit redis event
+			const eventMessage = userBody;
+			await emitRedisEvent('getUser', eventMessage);
+			// Send response
 			res.status(StatusCodes.OK).json(userBody);
 		} catch (err) {
-			const errStr = `Unknown error during updating user: ${err}`;
+			const errStr = `Unknown error during getting user: ${err}`;
 			console.log(errStr);
 			res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errStr);
 		}
 	}
 
+	/** @type {import("express").RequestHandler} */ // Allows intellisense for expressjs code
 	async updateUser(req, res) {
 		let { id } = req.clientPayload;
 		let { username } = req.body;
@@ -46,6 +53,14 @@ class UserController {
 			await userData.save();
 
 			console.log('Update successful');
+			// Emit redis event
+			const eventMessage = {
+				id: userData.id,
+				username: userData.username,
+				name: ''
+			};
+			await emitRedisEvent('updateUser', eventMessage);
+			// Send response
 			res.status(StatusCodes.OK).json(userData);
 		} catch (err) {
 			const errStr = `Unknown error during updating user: ${err}`;
@@ -54,6 +69,7 @@ class UserController {
 		}
 	}
 
+	/** @type {import("express").RequestHandler} */ // Allows intellisense for expressjs code
 	async deleteUser(req, res) {
 		let { id } = req.clientPayload;
 		try {
@@ -68,12 +84,21 @@ class UserController {
 			let userCred = await credentials.findOne({
 				where: {
 					id: userData.credentialId,
-				}
+				},
+				include: user
 			});
 
+			const oldUser = {
+				id: userCred.user.id,
+				username: userCred.user.username
+			};
 			await userCred.destroy();
 
 			console.log('Delete successful');
+			// Emit redis event
+			const eventMessage = oldUser;
+			await emitRedisEvent('deleteUser', eventMessage);
+			// Send response
 			res.status(StatusCodes.OK).send();
 		} catch (err) {
 			// Send unknown error response
