@@ -1,55 +1,49 @@
-const { StatusCodes } = require('http-status-codes');
-const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-const jwtAuth = require('../middleware/jwtAuth');
-const env = require('../config/env');
-const { credentials } = require('../db/models');
-const { user } = require('../db/models');
-const { tab } = require('../db/models');
-const { emitRedisEvent } = require("../config/redis.config");
+const { StatusCodes } = require("http-status-codes");
+const { UserService, userService } = require("./../services/user.service");
+const { matchedData } = require("express-validator");
 
+/**
+ * Class responsible for handling sign in HTTP requests
+ */
 class SigninController {
-	/** @type {import("express").RequestHandler} */ // Allows intellisense for expressjs code
-	async signIn(req, res) {
-		const { email, password } = req.body;
-		try {
-			console.log(`Attempting to login with email '${email}'`);
-			let hashedPassword = crypto
-                .pbkdf2Sync(password, env.hash.secret, env.hash.iterations, env.hash.keyLength, env.hash.algorithm)
-                .toString(env.hash.encoding);
-			let userCred = await credentials.findOne({
-				where: {
-					email: email,
-					password: hashedPassword
-				},
-				include: {
-					model: user
-				}
-			});
+  /**
+   * Constructs a new SigninController object
+   * @param {UserService} userService User service object
+   */
+  constructor(userService) {
+    this.userService = userService;
+    this.logPrefix = "Signin Controller:";
+  }
 
-			// Sign jwt
-			console.log('User found, signing jwt');
-			let userBody = {
-				id: userCred.user.id,
-				username: userCred.user.username,
-			};
-			let token = jwtAuth.sign(userBody);
-			console.log(`Succesfully signed in user '${email}'`);
-			// Emit redis event
-			const eventMessage = {
-				id: userCred.user.id,
-				email: userCred.email,
-				username: userCred.user.username,
-			}
-			await emitRedisEvent('signin', eventMessage);
-			// Send response
-			res.status(StatusCodes.OK).json({ data: userBody, token: token });
-		} catch (err) {
-			const errStr = `Unknown error during signing in: ${err}`
-			console.log(errStr);
-			res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errStr);
-		}
-	}
+  /**
+   * Sign in endpoint
+   * @param {import("express").Request} req Express request
+   * @param {import("express").Response} res Express response
+   */
+  signin = async (req, res) => {
+    const { email, password } = matchedData(req);
+
+    try {
+      console.log(
+        `${this.logPrefix} Attempting to login with email '${email}'`
+      );
+      const { user, token } = await this.userService.signinUser(
+        email,
+        password
+      );
+
+      if (token === null) {
+        res.status(StatusCodes.UNAUTHORIZED).send();
+      } else {
+        res.status(StatusCodes.OK).json({ user, token });
+      }
+    } catch (error) {
+      const errorStr = `${this.logPrefix} Unknown error during signing in: ${error}`;
+      console.log(errorStr);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errorStr);
+    }
+  };
 }
 
-module.exports = new SigninController();
+const signinController = new SigninController(userService);
+module.exports = { SigninController, signinController };

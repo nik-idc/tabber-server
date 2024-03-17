@@ -1,0 +1,25 @@
+meta {
+  name: updateTab
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{server}}api/tab/2
+  body: json
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "artist": "Linkin Park",
+    "song": "In The End",
+    "guitar": "{\"test\": \"test\"}",
+    "bars": "{\"test\": \"test\"}",
+    "isPublic": true,
+    "userId": "1"
+  }
+}

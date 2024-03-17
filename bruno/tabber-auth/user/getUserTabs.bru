@@ -1,0 +1,14 @@
+meta {
+  name: getUserTabs
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{server}}api/user/1/tabs
+  body: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

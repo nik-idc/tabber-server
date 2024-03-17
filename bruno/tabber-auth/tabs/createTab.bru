@@ -1,0 +1,25 @@
+meta {
+  name: createTab
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{server}}api/tab
+  body: json
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "artist": "Frank Ocean",
+    "song": "Futura Free",
+    "guitar": "{\"test\": \"test\"}",
+    "bars": "{\"test\": \"test\"}",
+    "isPublic": true,
+    "userId": "1"
+  }
+}

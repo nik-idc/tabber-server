@@ -1,111 +1,159 @@
-const { StatusCodes } = require('http-status-codes');
-const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-const env = require('../config/env');
-const { credentials } = require('../db/models');
-const { user } = require('../db/models');
-const { tab } = require('../db/models');
-const { emitRedisEvent } = require("../config/redis.config");
+const { StatusCodes } = require("http-status-codes");
+const { UserService, userService } = require("./../services/user.service");
+const { matchedData } = require("express-validator");
 
+/**
+ * Class responsible for handling user-related HTTP requests
+ */
 class UserController {
-	/** @type {import("express").RequestHandler} */ // Allows intellisense for expressjs code
-	async getUser(req, res) {
-		const { id } = req.clientPayload;
-		try {
-			console.log(`Attempting to get data of user '${id}'`);
-			let userData = await user.findOne({
-				where: {
-					id: id,
-				}
-			});
+  /**
+   * Constructs a new UserController object
+   * @param {UserService} userService User service object
+   */
+  constructor(userService) {
+    this.userService = userService;
+    this.logPrefix = "User Controller:";
+  }
 
-			console.log('Found user');
-			let userBody = {
-				id: userData.id,
-				username: userData.username,
-			};
-			// Emit redis event
-			const eventMessage = userBody;
-			await emitRedisEvent('getUser', eventMessage);
-			// Send response
-			res.status(StatusCodes.OK).json(userBody);
-		} catch (err) {
-			const errStr = `Unknown error during getting user: ${err}`;
-			console.log(errStr);
-			res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errStr);
-		}
-	}
+  /**
+   * Get users endpoint
+   * @param {import("express").Request} req Express request
+   * @param {import("express").Response} res Express response
+   */
+  getUsers = async (req, res) => {
+    const { count } = matchedData(req);
+    try {
+      console.log(
+        `${this.logPrefix} Get users endpoint hit, retrieving users...`
+      );
+      const users = await this.userService.getUsers(count);
 
-	/** @type {import("express").RequestHandler} */ // Allows intellisense for expressjs code
-	async updateUser(req, res) {
-		let { id } = req.clientPayload;
-		let { username } = req.body;
+      res.status(StatusCodes.OK).json(users);
+      console.log(`${this.logPrefix} Get users endpoint succesfull`);
+    } catch (error) {
+      const errorStr = `${this.logPrefix} Unknown error during getting users: ${error}`;
+      console.log(errorStr);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errorStr);
+    }
+  };
 
-		try {
-			console.log(`Attempting to update data of user '${id}'`);
-			let userData = await user.findOne({
-				where: {
-					id: id,
-				}
-			});
+  /**
+   * Get user endpoint
+   * @param {import("express").Request} req Express request
+   * @param {import("express").Response} res Express response
+   */
+  getUser = async (req, res) => {
+    const { id } = matchedData(req);
 
-			userData.username = username;
-			await userData.save();
+    try {
+      console.log(
+        `${this.logPrefix} Get user endpoint hit, retrieving user...`
+      );
+      const user = await this.userService.getUserById(id);
 
-			console.log('Update successful');
-			// Emit redis event
-			const eventMessage = {
-				id: userData.id,
-				username: userData.username,
-				name: ''
-			};
-			await emitRedisEvent('updateUser', eventMessage);
-			// Send response
-			res.status(StatusCodes.OK).json(userData);
-		} catch (err) {
-			const errStr = `Unknown error during updating user: ${err}`;
-			console.log(errStr);
-			res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errStr);
-		}
-	}
+      res.status(StatusCodes.OK).json(user);
+      console.log(`${this.logPrefix} Get user endpoint succesfull`);
+    } catch (error) {
+      const errorStr = `${this.logPrefix} Unknown error during getting user: ${error}`;
+      console.log(errorStr);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errorStr);
+    }
+  };
 
-	/** @type {import("express").RequestHandler} */ // Allows intellisense for expressjs code
-	async deleteUser(req, res) {
-		let { id } = req.clientPayload;
-		try {
-			console.log(`Attempting to delete user ${id}`);
-			let userData = await user.findOne({
-				where: {
-					id: id,
-				}
-			});
+  /**
+   * Get user tabs endpoint
+   * @param {import("express").Request} req Express request
+   * @param {import("express").Response} res Express response
+   */
+  getUserTabs = async (req, res) => {
+    const { userId } = matchedData(req);
 
-			console.log('Finding credentials');
-			let userCred = await credentials.findOne({
-				where: {
-					id: userData.credentialId,
-				},
-				include: user
-			});
+    try {
+      console.log(
+        `${this.logPrefix} Get user tabs endpoint hit, retrieving user...`
+      );
+      const tabs = await this.userService.getUserTabs(userId);
 
-			const oldUser = {
-				id: userCred.user.id,
-				username: userCred.user.username
-			};
-			await userCred.destroy();
+      res.status(StatusCodes.OK).json(tabs);
+      console.log(`${this.logPrefix} Get user tabs endpoint succesfull`);
+    } catch (error) {
+      const errorStr = `${this.logPrefix} Unknown error during getting user tabs: ${error}`;
+      console.log(errorStr);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errorStr);
+    }
+  };
 
-			console.log('Delete successful');
-			// Emit redis event
-			const eventMessage = oldUser;
-			await emitRedisEvent('deleteUser', eventMessage);
-			// Send response
-			res.status(StatusCodes.OK).send();
-		} catch (err) {
-			// Send unknown error response
-			console.log(`Unknown error during deleting user: ${err}`);
-			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: `Unknown error during deleting user: ${err}` });
-		}
-	}
+  /**
+   * Update user endpoint
+   * @param {import("express").Request} req Express request
+   * @param {import("express").Response} res Express response
+   */
+  createUser = async (req, res) => {
+    const { email, username, password } = matchedData(req);
+    try {
+      console.log(
+        `${this.logPrefix} Create user endpoint hit, creating user...`
+      );
+      const user = await this.userService.createUser(email, username, password);
+
+      console.log(`${this.logPrefix} Create user endpoint succesfull`);
+      res.status(StatusCodes.OK).json(user);
+    } catch (error) {
+      const errorStr = `${this.logPrefix} Unknown error during creating user: ${error}`;
+      console.log(errorStr);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errorStr);
+    }
+  };
+
+  /**
+   * Update user endpoint
+   * @param {import("express").Request} req Express request
+   * @param {import("express").Response} res Express response
+   */
+  updateUser = async (req, res) => {
+    const { id, email, username, password } = matchedData(req);
+    try {
+      console.log(
+        `${this.logPrefix} Update user endpoint hit, updating user...`
+      );
+      const user = await this.userService.updateUser(
+        id,
+        email,
+        username,
+        password
+      );
+
+      res.status(StatusCodes.OK).json(user);
+      console.log(`${this.logPrefix} Update user endpoint succesfull`);
+    } catch (error) {
+      const errorStr = `${this.logPrefix} Unknown error during updating user: ${error}`;
+      console.log(errorStr);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errorStr);
+    }
+  };
+
+  /**
+   * Delete user endpoint
+   * @param {import("express").Request} req Express request
+   * @param {import("express").Response} res Express response
+   */
+  deleteUser = async (req, res) => {
+    const { id } = matchedData(req);
+    try {
+      console.log(
+        `${this.logPrefix} Delete user endpoint hit, deleting user...`
+      );
+      await this.userService.deleteUser(id);
+
+      res.status(StatusCodes.OK).send();
+      console.log(`${this.logPrefix} Delete user endpoint succesfull`);
+    } catch (error) {
+      const errorStr = `${this.logPrefix} Unknown error during deleting user: ${error}`;
+      console.log(errorStr);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(errorStr);
+    }
+  };
 }
 
-module.exports = new UserController();
+const userController = new UserController(userService);
+module.exports = { UserController, userController };

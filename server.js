@@ -1,26 +1,20 @@
-const express = require('express');
-const app = express();
-const db = require('./src/db/models');
-const env = require('./src/config/env');
-const { redisConfig } = require('./src/config/redis.config');
-const { listenRedisEvents } = require('./src/redis/eventListener');
+const express = require("express");
+const { db } = require("./src/db/db");
+const env = require("./src/config/env");
+const { router } = require("./src/router/router");
 
-// Setup routes
-require("./src/router/router")(app);
+const main = async () => {
+  const app = express();
 
-// Create associations
-require('./src/db/associations')();
+  router.setup(app);
 
-// Create a Server
-const port = process.env.port || env.app.port || 3000;
-db.sequelize.sync(/*{ alter: true }*/).then(() => {
-  // Listen to incoming redis events
-  listenRedisEvents();
+  db.sync();
 
-  // Create server and listen to incoming requests on it
-  let server = app.listen(port, () => {
-    let srvHost = server.address().address;
-    let srvPort = server.address().port;
-    console.log(`server started on host "${srvHost}", port "${srvPort}"`);
+  app.listen(env.app.port, () => {
+    console.log(
+      `'${env.app.name}' started and listening on port ${env.app.port}`
+    );
   });
-})
+};
+
+main();

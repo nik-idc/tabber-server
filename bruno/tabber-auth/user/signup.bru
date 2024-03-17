@@ -1,0 +1,22 @@
+meta {
+  name: signup
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{server}}api/signup
+  body: json
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "email": "fof@fof.fof",
+    "password": "_fofFOF20_",
+    "username": "fof"
+  }
+}

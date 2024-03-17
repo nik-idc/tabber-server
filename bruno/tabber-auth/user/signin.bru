@@ -1,0 +1,17 @@
+meta {
+  name: signin
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{server}}api/signin
+  body: json
+}
+
+body:json {
+  {
+    "email": "fof@fof.fof",
+    "password": "_fofFOF20_"
+  }
+}
