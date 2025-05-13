@@ -31,21 +31,23 @@ class TabService {
 
   /**
    * Creates tab
+   * @param {string} name Tab name
    * @param {string} artist Artist
    * @param {string} song Song
    * @param {Object | string} guitar Guitar
-   * @param {Object | string} bars Bars object
+   * @param {Object | string} data Entire tab as JSON object
    * @param {boolean} isPublic If tab is public
    * @param {string | number} userId User id
    * @returns Created tab
    */
-  createTab = async (artist, song, guitar, bars, isPublic, userId) => {
+  createTab = async (name, artist, song, guitar, bars, isPublic, userId) => {
     console.log(`${this.logPrefix} Creating tab...`);
     const tab = await this.db.models.Tab.create({
+      name: name,
       artist: artist,
       song: song,
       guitar: guitar,
-      bars: bars,
+      data: bars,
       isPublic: isPublic,
       userId: userId,
     });
@@ -60,18 +62,18 @@ class TabService {
    * @param {string} artist Artist
    * @param {string} song Song
    * @param {Object | string} guitar Guitar
-   * @param {Object | string} bars Bars object
+   * @param {Object | string} data Entire tab as JSON object
    * @param {boolean} isPublic Is tab isPublic
    * @returns Updated tab
    */
-  updateTab = async (tabId, artist, song, guitar, bars, isPublic) => {
+  updateTab = async (tabId, artist, song, guitar, data, isPublic) => {
     console.log(`${this.logPrefix} Updating tab...`);
     const tab = await this.db.models.Tab.update(
       {
         artist: artist,
         song: song,
         guitar: guitar,
-        bars: bars,
+        data: data,
         isPublic: isPublic,
       },
       {

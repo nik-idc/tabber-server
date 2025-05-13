@@ -65,14 +65,16 @@ class TabController {
    * @param {import("express").Response} res Express response
    */
   createTab = async (req, res) => {
-    const { artist, song, guitar, bars, isPublic, userId } = matchedData(req);
+    const { name, artist, song, guitar, data, isPublic, userId } =
+      matchedData(req);
     try {
       console.log(`${this.logPrefix} Create tab endpoint hit, creating tab...`);
       const tab = await this.tabService.createTab(
+        name,
         artist,
         song,
         guitar,
-        bars,
+        data,
         isPublic,
         userId
       );
@@ -92,15 +94,17 @@ class TabController {
    * @param {import("express").Response} res Express response
    */
   updateTab = async (req, res) => {
-    const { tabId, artist, song, guitar, bars, isPublic } = matchedData(req);
+    const { tabId, name, artist, song, guitar, data, isPublic } =
+      matchedData(req);
     try {
       console.log(`${this.logPrefix} Update tab endpoint hit, updating tab...`);
       const tab = await this.tabService.updateTab(
         tabId,
+        name,
         artist,
         song,
         guitar,
-        bars,
+        data,
         isPublic
       );
 

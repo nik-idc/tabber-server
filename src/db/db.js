@@ -30,7 +30,7 @@ class DB {
   sync = async () => {
     this.createAssociations();
 
-    let options = { };
+    let options = {};
     await this.models.Tab.sync(options);
     await this.models.User.sync(options);
   };

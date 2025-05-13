@@ -13,10 +13,11 @@ class TabValidator {
   ];
 
   createTab = [
+    body("name").isString().withMessage("'name' not string"),
     body("artist").isString().withMessage("'artist' not string"),
     body("song").isString().withMessage("'song' not string"),
     body("guitar").isJSON().withMessage("'guitar' not JSON"),
-    body("bars").isJSON().withMessage("'bars' not JSON"),
+    body("data").isJSON().withMessage("'data' not JSON"),
     body("isPublic").isBoolean().withMessage("'isPublic' not boolean"),
     body("userId").isNumeric().withMessage("'userId' not numeric"),
     (req, res, next) => {
@@ -26,10 +27,11 @@ class TabValidator {
 
   updateTab = [
     param("tabId").isNumeric().withMessage("'tabId' not numeric"),
+    body("name").isString().withMessage("'name' not string"),
     body("artist").isString().withMessage("'artist' not string"),
     body("song").isString().withMessage("'song' not string"),
     body("guitar").isJSON().withMessage("'guitar' not JSON"),
-    body("bars").isJSON().withMessage("'bars' not JSON"),
+    body("data").isJSON().withMessage("'data' not JSON"),
     body("isPublic").isBoolean().withMessage("'isPublic' not boolean"),
     (req, res, next) => {
       validateResult(req, res, next);
