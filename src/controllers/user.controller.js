@@ -61,20 +61,25 @@ class UserController {
   };
 
   /**
-   * Get user tabs endpoint
+   * Get user scores endpoint
    * @param {import("express").Request} req Express request
    * @param {import("express").Response} res Express response
    */
-  getUserTabs = async (req, res) => {
+  getUserScores = async (req, res) => {
     const { userId } = matchedData(req);
 
     try {
       console.log(
         `${this.logPrefix} Get user tabs endpoint hit, retrieving user...`
       );
-      const tabs = await this.userService.getUserTabs(userId);
+      const scores = await this.userService.getUserScores(userId);
 
-      res.status(StatusCodes.OK).json(tabs);
+      if (scores === null || scores === undefined) {
+        res.status(StatusCodes.OK).json([]);
+      } else {
+        res.status(StatusCodes.OK).json(scores);
+      }
+
       console.log(`${this.logPrefix} Get user tabs endpoint succesfull`);
     } catch (error) {
       const errorStr = `${this.logPrefix} Unknown error during getting user tabs: ${error}`;

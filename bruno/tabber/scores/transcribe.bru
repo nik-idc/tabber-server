@@ -1,0 +1,23 @@
+meta {
+  name: transcribe
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{server}}api/transcribe
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:multipart-form {
+  file: @file(E:\Dev\Projects\tabber\tabber-transcribe\input\input1.wav) @contentType(audio/wav)
+}
+
+body:file {
+  file: @file(E:\Dev\Projects\tabber\tabber-transcribe\input\input1.wav) @contentType(audio/wav)
+}

@@ -44,10 +44,10 @@ class UserRouter {
     );
 
     app.get(
-      "/api/user/:userId/tabs",
-      this.userValidator.getUserTabs,
+      "/api/user/:userId/score",
+      this.userValidator.getUserScores,
       this.jwtAuth.auth,
-      this.userController.getUserTabs
+      this.userController.getUserScores
     );
 
     app.post(

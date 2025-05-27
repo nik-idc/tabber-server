@@ -1,0 +1,21 @@
+meta {
+  name: updateScore
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{server}}api/score/4
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "song": "test song"
+  }
+}

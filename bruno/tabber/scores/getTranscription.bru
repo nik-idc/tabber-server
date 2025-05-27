@@ -1,0 +1,24 @@
+meta {
+  name: getTranscription
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{server}}api/transcribe?filename=2f81d10c-199a-45de-bc54-0315c635c6ad_input1&transcription_id=48&name=AIT 'input1'&artist=Unknown artist&song=Unknown song&isPublic=false
+  body: none
+  auth: inherit
+}
+
+params:query {
+  filename: 2f81d10c-199a-45de-bc54-0315c635c6ad_input1
+  transcription_id: 48
+  name: AIT 'input1'
+  artist: Unknown artist
+  song: Unknown song
+  isPublic: false
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

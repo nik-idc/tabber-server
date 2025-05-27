@@ -1,12 +1,13 @@
 meta {
-  name: getUserTabs
+  name: getUserScores
   type: http
   seq: 5
 }
 
 get {
-  url: {{server}}api/user/1/tabs
+  url: {{server}}api/user/1/score
   body: none
+  auth: none
 }
 
 headers {
