@@ -131,3 +131,7 @@ dist
 
 # config
 src/config/
+
+# MT3 uploads
+uploads
+transcriptions

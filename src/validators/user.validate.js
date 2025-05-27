@@ -19,7 +19,7 @@ class UserValidator {
     },
   ];
 
-  getUserTabs = [
+  getUserScores = [
     param("userId").isNumeric().withMessage("'userId' not numeric"),
     (req, res, next) => {
       validateResult(req, res, next);

@@ -1,12 +1,13 @@
 meta {
-  name: getTab
+  name: deleteScore
   type: http
-  seq: 1
+  seq: 4
 }
 
-get {
-  url: {{server}}api/tab/2
+delete {
+  url: {{server}}api/score/2
   body: none
+  auth: none
 }
 
 headers {

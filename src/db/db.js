@@ -1,15 +1,15 @@
 const User = require("./models/user.model");
-const Tab = require("./models/tab.model");
+const Score = require("./models/score.model");
 
 /**
- * Database class
+ * Dascorease class
  */
 class DB {
   /**
    * Constructs a new DB instance
    * @param {Object} models Models object
    * @param {import("sequelize").ModelCtor<Model<any>>} models.User Sequelize User model
-   * @param {import("sequelize").ModelCtor<Model<any>>} models.Tab Sequelize Tab model
+   * @param {import("sequelize").ModelCtor<Model<any>>} models.Score Sequelize Score model
    */
   constructor(models) {
     this.models = models;
@@ -19,9 +19,9 @@ class DB {
    * Creates associations
    */
   createAssociations = () => {
-    // User has many tabs
-    this.models.User.hasMany(this.models.Tab);
-    this.models.Tab.belongsTo(this.models.User);
+    // User has many scores
+    this.models.User.hasMany(this.models.Score, { foreignKey: "userId" });
+    this.models.Score.belongsTo(this.models.User, { foreignKey: "userId" });
   };
 
   /**
@@ -30,11 +30,10 @@ class DB {
   sync = async () => {
     this.createAssociations();
 
-    let options = {};
-    await this.models.Tab.sync(options);
-    await this.models.User.sync(options);
+    await this.models.Score.sync();
+    await this.models.User.sync();
   };
 }
 
-const db = new DB({ User, Tab });
+const db = new DB({ User, Score });
 module.exports = { DB, db };

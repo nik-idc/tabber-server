@@ -32,7 +32,7 @@ class SignupRouter {
     app.post(
       "/api/signup",
       this.signupValidator.signup,
-      this.jwtAuth.auth,
+      // this.jwtAuth.auth,
       this.signupController.signup
     );
   };

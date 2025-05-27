@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../sequelize");
 
-const Tab = sequelize.define("tab", {
+const Score = sequelize.define("score", {
   id: {
     type: DataTypes.BIGINT,
     primaryKey: true,
@@ -10,7 +10,6 @@ const Tab = sequelize.define("tab", {
   },
   name: {
     type: DataTypes.STRING,
-    allowNull: false,
   },
   artist: {
     type: DataTypes.STRING,
@@ -18,19 +17,15 @@ const Tab = sequelize.define("tab", {
   song: {
     type: DataTypes.STRING,
   },
-  guitar: {
-    type: DataTypes.JSON,
-    allowNull: false,
-  },
-  data: {
-    type: DataTypes.JSON,
-    allowNull: false,
-  },
   isPublic: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false,
   },
+  tracks: {
+    type: DataTypes.JSON,
+    allowNull: false,
+  },
 });
 
-module.exports = Tab;
+module.exports = Score;

@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const env = require("./../config/env");
 const { DB, db } = require("./../db/db");
 const { JwtAuth, jwtAuth } = require("./../middleware/jwtAuth");
-const Tab = require("../db/models/tab.model");
+const Tab = require("../db/models/score.model");
 
 /**
  * Class responsible fir user-related business logic
@@ -82,16 +82,16 @@ class UserService {
    * @param {string | number} userId
    * @returns All user's tabs
    */
-  getUserTabs = async (userId) => {
+  getUserScores = async (userId) => {
     console.log(`${this.logPrefix} Getting tabs of user '${userId}'...`);
     const user = await this.db.models.User.findByPk(userId, {
       include: {
-        model: this.db.models.Tab,
+        model: this.db.models.Score,
       },
     });
 
     console.log(`${this.logPrefix} Retrieved tabs of user '${userId}'`);
-    return user.tabs;
+    return user.scores;
   };
 
   /**
