@@ -119,10 +119,8 @@ class MidiToScoreService {
           startTick: t, // For processing, will be 'undefined'-ed after all is done
           endTick: t + barLengthTicks, // For processing, will be 'undefined'-ed after all is done
 
-          uuid: utilService.randomInt(),
-          guitar: {},
-          _tempo: tempo,
-          _beatsCount: beats,
+          tempo: tempo,
+          beatsCount: beats,
           duration: 1 / noteVal,
           beats: [],
         });
@@ -154,52 +152,77 @@ class MidiToScoreService {
    * Detects most fitting tuning considering all the provided notes
    * @param {number[]} noteMIDINumbers Array of MIDI note numbers
    * @param {number} stringCount String count
-   * @param {number} maxDeviation Max deviation from default tunings
+   * @param {number} maxFret - Max fret considered playable (default 24)
+   * @param {number} maxStringSpan - Max distance between strings used (optional)
    * @returns Best fitting tuning
    */
-  #detectBestTuning(noteMIDINumbers, stringCount = 6, maxDeviation = 2) {
-    const proto = Array(stringCount).fill(Infinity);
-    for (let n = 0; n < noteMIDINumbers.length; n++) {
-      const noteMidiNumber = noteMIDINumbers[n];
-      for (let i = 0; i < stringCount; i++) {
-        const current = proto[i];
-        const fret = noteMidiNumber - current;
-        if (fret >= 0 && fret <= 24 && noteMidiNumber < current) {
-          proto[i] = noteMidiNumber;
-          break;
-        }
-      }
-    }
+  #detectBestTuning(
+    noteMIDINumbers,
+    stringCount = 6,
+    maxFret = 24,
+    maxStringSpan = 2
+  ) {
+    let bestFit = undefined;
+    let bestScore = -Infinity;
+    const scores = [];
 
-    const filtered = [];
-    for (let t = 0; t < commonTunings.length; t++) {
-      const tuning = commonTunings[t];
+    for (let tuning of commonTunings) {
       if (tuning.length !== stringCount) {
         continue;
       }
 
-      let match = true;
-      for (let j = 0; j < stringCount; j++) {
-        if (Math.abs(tuning[j] - proto[j]) > maxDeviation) {
-          match = false;
+      let matchedCount = 0;
+      let usedStrings = [];
+      for (let note of noteMIDINumbers) {
+        let fretFound = false;
+        for (let stringIdx = 0; stringIdx < tuning.length; stringIdx++) {
+          const fret = note - tuning[stringIdx];
+          if (fret >= 0 && fret <= maxFret) {
+            matchedCount++;
+            usedStrings.push(stringIdx);
+            fretFound = true;
+            break; // First string that works
+          }
+        }
+
+        if (!fretFound) {
+          // If one note can't be played, this tuning might not be valid
           break;
         }
       }
-      if (match) {
-        filtered.push(tuning);
+
+      if (matchedCount !== noteMIDINumbers.length) {
+        continue;
+      }
+
+      const span =
+        usedStrings.length > 1
+          ? Math.max(...usedStrings) - Math.min(...usedStrings)
+          : 0;
+      const spanPenalty = span > maxStringSpan ? (span - maxStringSpan) * 2 : 0;
+      const score = matchedCount - spanPenalty;
+      scores.push(score);
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestFit = tuning;
       }
     }
 
-    if (filtered.length > 0) {
-      return filtered[0];
-    }
-    for (let t = 0; t < commonTunings.length; t++) {
-      if (commonTunings[t].length === stringCount) {
-        return commonTunings[t];
-      }
+    if (bestFit !== undefined) {
+      return bestFit;
     }
 
-    return commonTunings[0];
+    // Fallback: build a tuning starting from the lowest MIDI note
+    const minNote = Math.min(...noteMIDINumbers);
+    const fallbackTuning = [];
+    let current = minNote;
+    for (let i = 0; i < stringCount; i++) {
+      fallbackTuning.push(current);
+      current += i === 3 ? 4 : 5; // Approximate standard pattern: 5, 5, 5, 4, 5
+    }
+
+    return fallbackTuning;
   }
 
   /**
@@ -212,10 +235,8 @@ class MidiToScoreService {
         startTick: bar.startTick,
         endTick: bar.endTick,
 
-        uuid: bar.uuid,
-        guitar: bar.guitar,
-        _tempo: bar._tempo,
-        _beatsCount: bar._beatsCount,
+        tempo: bar.tempo,
+        beatsCount: bar.beatsCount,
         duration: bar.duration,
         beats: [],
       });
@@ -248,8 +269,8 @@ class MidiToScoreService {
    */
   #midiToNote(noteMidiNumber) {
     return {
-      _noteValue: noteNames[noteMidiNumber % 12],
-      _octave: Math.floor(noteMidiNumber / 12) - 1,
+      noteValue: noteNames[noteMidiNumber % 12],
+      octave: Math.floor(noteMidiNumber / 12) - 1,
     };
   }
 
@@ -280,20 +301,18 @@ class MidiToScoreService {
    * @param {any} guitar Guitar
    * @param {number | undefined} stringNum String number (1-to-*max number of strings*)
    * @param {number | undefined} fret Fret
-   * @param {{_noteValue:string, _octave: number | undefined}} stringInfo
+   * @param {{noteValue:string, octave: number | undefined}} stringInfo
    * @returns tabber-like note object
    */
   #buildGuitarNote(guitar, stringNum, fret, stringInfo) {
     return {
-      uuid: utilService.randomInt(),
-      guitar: guitar,
-      _stringNum: stringNum,
-      _fret: fret,
-      _note: {
-        _noteValue: stringInfo._noteValue,
-        _octave: stringInfo._octave,
+      stringNum: stringNum,
+      fret: fret,
+      note: {
+        noteValue: stringInfo.noteValue,
+        octave: stringInfo.octave,
       },
-      _effects: [],
+      effects: [],
     };
   }
 
@@ -306,13 +325,14 @@ class MidiToScoreService {
     const notes = [];
     for (let i = 0; i < guitar.stringsCount; i++) {
       notes.push(
-        this.#buildGuitarNote(guitar, i + 1, undefined, { _noteValue: "" })
+        // this.#buildGuitarNote(guitar, i + 1, undefined, { noteValue: "" })
+        null
       );
     }
 
     return {
-      uuid: utilService.randomInt(),
-      guitar: guitar,
+      quantizedDurations: [0.25], // For processing, will be 'undefined'-ed after all is done
+
       duration: 1 / 4,
       notes: notes,
     };
@@ -326,8 +346,8 @@ class MidiToScoreService {
     const tuning = this.#detectBestTuning(track.notes.map((n) => n.midi));
     const guitar = {
       tuning: tuning.map((midi) => ({
-        _noteValue: this.#midiToNote(midi)._noteValue,
-        _octave: this.#midiToNote(midi)._octave,
+        noteValue: this.#midiToNote(midi).noteValue,
+        octave: this.#midiToNote(midi).octave,
       })),
       stringsCount: tuning.length,
       fretsCount: 24,
@@ -365,7 +385,7 @@ class MidiToScoreService {
         }
 
         const tabberNote = this.#midiToNote(note.midi);
-        const duration = this.#quantizeDuration(note.duration, bar._tempo);
+        const duration = this.#quantizeDuration(note.duration, bar.tempo);
 
         if (bar.beats[beatIndex].quantizedDurations === undefined) {
           bar.beats[beatIndex].quantizedDurations = [duration];
@@ -390,26 +410,21 @@ class MidiToScoreService {
       for (let i = 0; i < bar.beats.length; i++) {
         if (bar.beats[i] === null || bar.beats[i] === undefined) {
           bar.beats[i] = this.#buildEmptyBeat(guitar);
-          bar.beats[i].quantizedDurations = [0.25];
+          //   bar.beats[i].quantizedDurations = [0.25];
         }
       }
     }
 
     for (const bar of bars) {
       if (bar.beats.length === 0) {
-        for (let i = 0; i < bar._beatsCount; i++) {
+        for (let i = 0; i < bar.beatsCount; i++) {
           const notes = [];
           for (let j = 0; j < bar.guitar.stringsCount; j++) {
-            notes.push(
-              this.#buildGuitarNote(guitar, j + 1, undefined, {
-                _noteValue: "",
-              })
-            );
+            notes.push(null);
           }
 
           bar.beats.push({
             uuid: utilService.randomInt(),
-            guitar: bar.guitar,
             duration: bar.duration,
             quantizedDurations: [bar.duration],
             notes: notes,
@@ -418,12 +433,8 @@ class MidiToScoreService {
       }
 
       for (const beat of bar.beats) {
-        try {
-          beat.duration = Math.max(...beat.quantizedDurations);
-          // beat.quantizedDurations = undefined;
-        } catch (error) {
-          console.log(error);
-        }
+        beat.duration = Math.max(...beat.quantizedDurations);
+        beat.quantizedDurations = undefined;
       }
     }
 
@@ -432,7 +443,7 @@ class MidiToScoreService {
       name: this.header.name,
       instrumentName: track.instrument.name,
       guitar: guitar,
-      _bars: bars,
+      bars: bars,
     };
   }
 
