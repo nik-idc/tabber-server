@@ -87,8 +87,12 @@ class UserService {
     const user = await this.db.models.User.findByPk(userId, {
       include: {
         model: this.db.models.Score,
+        attributes: { exclude: ["tracks"] },
       },
     });
+    for (const score of user.scores) {
+      score.tracks = [];
+    }
 
     console.log(`${this.logPrefix} Retrieved tabs of user '${userId}'`);
     return user.scores;

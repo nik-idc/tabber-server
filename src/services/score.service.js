@@ -31,6 +31,11 @@ class ScoreService {
   getScore = async (scoreId) => {
     console.log(`${this.logPrefix} Getting score '${scoreId}'...`);
     const score = await this.db.models.Score.findByPk(scoreId);
+    for (let i = 0; i < score.tracks.length; i++) {
+      if (typeof score.tracks[i] === "string") {
+        score.tracks[i] = JSON.parse(score.tracks[i]);
+      }
+    }
     console.log(`${this.logPrefix} Retrieved score '${scoreId}'`);
 
     return score;
